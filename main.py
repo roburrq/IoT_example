@@ -1,6 +1,5 @@
 import socket
 from machine import Pin
-
 led_pin = Pin(5, Pin.OUT)
 
 CONTENT = """\
@@ -12,14 +11,16 @@ Content-Type: text/html
   </head>
   <body>
     <p>Hello #%d from MicroPython!</p>
-    <a href="/toggle">Click here to toggle LED hooked to pin 5</a>
+    <a href="/redtoggle">Click here to toggle LED hooked to pin 5</a>
+    <a href="/greentoggle">Click here to toggle LED hooked to pin 3</a>
+    <a href="/bluetoggle">Click here to toggle LED hooked to pin 7</a>
   </body>
 </html>
 """
 
 def main():
     s = socket.socket()
-    ai = socket.getaddrinfo("10.59.1.182", 8080)
+    ai = socket.getaddrinfo("0.0.0.0", 8080)
     print("Bind address info:", ai)
     addr = ai[0][-1]
 
@@ -35,15 +36,19 @@ def main():
         stream = sock.makefile("rwb")
         req = stream.readline().decode("ascii")
         method, path, protocol = req.split(" ")
-        print("Got", method, "request for")
-        if path == "/toggle":
-            led_pin.value(1-led_pin.value())
+        print("Got", method, "request for", path)
+        if path == "/redtoggle":
+            led_red.value(1-led_red.value())
+	elif path == "/greentoggle":
+            led_green.value(1-led_green.value())
+	else path == "/bluetoggle":
+            led_blue.value(1-led_blue.value())
         while True:
             h = stream.readline().decode("ascii").strip()
             if h == "":
                 break
             print("Got HTTP header:", h)
-        stream.write(CONTENT % counter)
+        stream.write((CONTENT % counter).encode("ascii"))
         stream.close()
         sock.close()
         counter += 1
